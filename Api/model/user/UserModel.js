@@ -1,5 +1,4 @@
 /* eslint-disable indent */
-const { boolean } = require('joi');
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
@@ -44,5 +43,6 @@ const userSchema = new mongoose.Schema(
 );
 const User = mongoose.model('user', userSchema);
 const createAdmin = (adminObj) => User.create(adminObj);
+const getUser = (filter)=> User.findOne(filter);
 const updateAdmin = (filter, updateObj) => User.findOneAndUpdate(filter, updateObj);
-module.exports = { createAdmin, updateAdmin };
+module.exports = { createAdmin, updateAdmin, getUser };

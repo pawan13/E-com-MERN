@@ -1,10 +1,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable indent */
 const { v4: uuidv4 } = require('uuid');
-const nodemailer = require('nodemailer');
 const { message: { SUCCESS }, message } = require('../utils/const');
-const { hashPassword } = require('../hepler/bcrypt');
-const { createAdmin, updateAdmin } = require('../model/user/UserModel');
+const { hashPassword, comparePassword } = require('../hepler/bcrypt');
+const { createAdmin, updateAdmin, getUser } = require('../model/user/UserModel');
 const { sendAccountActivationEmail } = require('../hepler/nodemailer');
 
 const FR_URL = 'https://localhost:3000/';
@@ -57,7 +56,38 @@ const verifyUser = async (req, res, next) => {
     }
 };
 
+const loginUser = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = getUser({ email });
+
+        if (user?._id) {
+            const isPassValid = comparePassword(password, user?.password);
+            if (isPassValid) {
+                const accessJWT = '';
+                const refreshJWT = '';
+                return res.json({
+                    status: SUCCESS,
+                    message: 'login Success',
+                    token: {
+                        accessJWT,
+                        refreshJWT,
+                    },
+                });
+            }
+        }
+        res.code(403).json({
+            status: message.ERROR,
+            message: 'Invalid login details',
+        });
+    } catch (e) {
+        next(e);
+    }
+};
+
 module.exports = {
     registerUser,
     verifyUser,
+    loginUser,
 };

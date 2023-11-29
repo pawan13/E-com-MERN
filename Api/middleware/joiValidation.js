@@ -50,7 +50,29 @@ const accountRegistrationValidation = (req, res, next) => {
     }
 };
 
+const loginValidation = (req, res, next) => {
+    try {
+        const loginSchema = Joi.object({
+            email: Joi.string().required(),
+            password: Joi.string().required(),
+        });
+        const { error } = loginSchema.validate(req.body);
+        if (error) {
+            res.json({
+                status: Error,
+                message: error.message,
+            });
+        } else {
+            console.log('Validation passed');
+            next();
+        }
+    } catch (e) {
+        next(e);
+    }
+};
+
 module.exports = {
     adminRegistrationValidation,
     accountRegistrationValidation,
+    loginValidation
 };

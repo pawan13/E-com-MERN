@@ -1,11 +1,16 @@
 const express = require('express');
 const { message: { SUCCESS } } = require('../utils/const');
-const { registerUser, verifyUser } = require('../controller/userController');
+const { registerUser, verifyUser, loginUser } = require('../controller/userController');
 const { adminRegistrationValidation, accountRegistrationValidation } = require('../middleware/joiValidation');
 
 const userRouter = express.Router();
 
+// admin registration
+userRouter.post('/registration', adminRegistrationValidation, registerUser);
+userRouter.post('/verification', accountRegistrationValidation, verifyUser);
+
 // login
+userRouter.post('/login', loginUser);
 userRouter.post('/login', (req, res, next) => {
   try {
     res.json({
@@ -28,10 +33,6 @@ userRouter.get('/logout', (req, res, next) => {
     next(e);
   }
 });
-
-// admin registration
-userRouter.post('/registration', adminRegistrationValidation, registerUser);
-userRouter.post('/verification', accountRegistrationValidation, verifyUser);
 
 // Reset Password
 userRouter.post('/reset-password', (req, res) => {
