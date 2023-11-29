@@ -1,54 +1,59 @@
-/* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable indent */
+// eslint-disable-next-line import/no-extraneous-dependencies
 const { v4: uuidv4 } = require('uuid');
-const { message: { SUCCESS }, message } = require('../utils/const');
-const { hashPassword, comparePassword } = require('../hepler/bcrypt');
+const { message: { SUCCESS }, message, FE_URL } = require('../utils/const');
+const { hashPassword, comparePassword } = require('../service/bcrypt');
 const { createAdmin, updateAdmin, getUser } = require('../model/user/UserModel');
-const { sendAccountActivationEmail } = require('../hepler/nodemailer');
+const { sendAccountActivationEmail, sendAccountActivatedNotificationEmail } = require('../service/nodemailer');
+const { createAccessJWT, createRefreshJWT } = require('../service/jwt');
+const { deleteSession } = require('../model/session/SessionModel');
 
-const FR_URL = 'https://localhost:3000/';
 const registerUser = async (req, res, next) => {
     try {
         const { password, email, fName } = req.body;
         req.body.password = hashPassword(password);
-        // 1. add verification code and Save the user info to DB
+
+        // 1. Add verification code to user and then save
         const verificationCode = uuidv4();
         req.body.verificationCode = verificationCode;
         await createAdmin(req.body);
         res.json({
             status: SUCCESS,
-            message: 'Please check your email and follow instruction to activate your account',
+            message: 'Pease check your email and follow instruction to activate your account',
         });
-
-        // 2. send an email so that user can be verified
-        const link = `${FR_URL}/admin_verification?c=${verificationCode}& e=${email}`;
-        await sendAccountActivationEmail({ link, email, fName });
+        // 2. Send an email so they can verify their email
+        // We have to open frontend
+        const link = `${FE_URL}/admin-verification?c=${verificationCode}&e=${email}`;
+        await sendAccountActivationEmail({ link, fName, email });
     } catch (e) {
         next(e);
     }
 };
+
 const verifyUser = async (req, res, next) => {
     try {
         const { e, c } = req.body;
-        const filter = {
+
+        const response = await updateAdmin({
             email: e,
             verificationCode: c,
-        };
-        const updateObj = {
+        }, {
             isVerified: true,
             verificationCode: '',
-        };
-        const response = await updateAdmin(filter, updateObj);
+            status: 'active',
+        });
         if (response?._id) {
-            sendAccountActivationEmail({ link: `${FR_URL}/login`, email: e });
+            // send act verification email
+            const { fName } = await getUser({ email: e });
+            await sendAccountActivatedNotificationEmail({ email: e, link: `${FE_URL}/login`, fName });
             res.json({
                 status: SUCCESS,
-                message: 'Your account is verfied successfully, you can login now ',
+                message: 'You account is verified successfully, you can login now',
             });
         } else {
-            res.json({
+            res.status(403).json({
                 status: message.ERROR,
-                message: 'your link is invalid or expired',
+                message: 'You link is expired or invalid!',
             });
         }
     } catch (e) {
@@ -60,16 +65,23 @@ const loginUser = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        const user = getUser({ email });
-
+        const user = await getUser({ email });
+        // check if a user is active/inactive
+        if (user?.status === 'inactive') {
+            return res.status(403).json({
+                status: message.ERROR,
+                message: 'User Account deactivated',
+            });
+        }
         if (user?._id) {
             const isPassValid = comparePassword(password, user?.password);
             if (isPassValid) {
-                const accessJWT = '';
-                const refreshJWT = '';
+                // generate JWT Tokens and send it back
+                const accessJWT = await createAccessJWT({ email });
+                const refreshJWT = await createRefreshJWT({ email });
                 return res.json({
                     status: SUCCESS,
-                    message: 'login Success',
+                    message: 'Login Success',
                     token: {
                         accessJWT,
                         refreshJWT,
@@ -77,17 +89,49 @@ const loginUser = async (req, res, next) => {
                 });
             }
         }
-        res.code(403).json({
+        res.status(403).json({
             status: message.ERROR,
-            message: 'Invalid login details',
+            message: 'Invalid Login Detail',
         });
     } catch (e) {
         next(e);
     }
 };
 
+const getAdminInfo = (req, res, next) => {
+    try {
+        res.json({
+            status: SUCCESS,
+            user: req.userInfo,
+        });
+    } catch (e) {
+        next(e);
+    }
+};
+
+const logOutUser = async (req, res, next) => {
+    try {
+        const { accessJWT, refreshJWT } = req.body;
+        console.log('accessJWT', accessJWT);
+        console.log('refreshJWT', accessJWT);
+        // remove accessJWT from session model
+        await deleteSession(accessJWT);
+        // remove refreshJWT from user model
+        await updateAdmin({ refreshJWT }, {
+            refreshJWT: '',
+        });
+        res.json({
+            status: SUCCESS,
+            message: 'Logout Success',
+        });
+    } catch (e) {
+        next(e);
+    }
+};
 module.exports = {
     registerUser,
     verifyUser,
     loginUser,
+    getAdminInfo,
+    logOutUser,
 };

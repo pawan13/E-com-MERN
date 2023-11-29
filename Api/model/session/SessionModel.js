@@ -17,7 +17,12 @@ const sessionSchema = new mongoose.Schema({
 
 const Session = mongoose.model('session', sessionSchema);
 const createSession = (sessionObj) => Session.create(sessionObj);
+const deleteSession = async (accesstoken) => {
+    const dt = await Session.findOneAndDelete({ accesstoken });
+    return dt;
+};
 
 module.export = {
     createSession,
+    deleteSession,
 };

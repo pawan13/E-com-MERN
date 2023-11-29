@@ -1,38 +1,28 @@
 const express = require('express');
 const { message: { SUCCESS } } = require('../utils/const');
-const { registerUser, verifyUser, loginUser } = require('../controller/userController');
-const { adminRegistrationValidation, accountRegistrationValidation } = require('../middleware/joiValidation');
+const {
+  registerUser, verifyUser, loginUser, getAdminInfo, logOutUser,
+} = require('../controller/userController');
+const { adminRegistrationValidation, accountVerificationValidation, loginValidation } = require('../middleware/joiValidation');
+const { auth, refreshAuth } = require('../middleware/authmiddleware');
 
 const userRouter = express.Router();
 
 // admin registration
 userRouter.post('/registration', adminRegistrationValidation, registerUser);
-userRouter.post('/verification', accountRegistrationValidation, verifyUser);
+userRouter.post('/account-verification', accountVerificationValidation, verifyUser);
 
-// login
-userRouter.post('/login', loginUser);
-userRouter.post('/login', (req, res, next) => {
-  try {
-    res.json({
-      status: SUCCESS,
-      message: 'login Success',
-    });
-  } catch (e) {
-    next(e);
-  }
-});
+// get access token using refresh token
+userRouter.get('/get-accessjwt', refreshAuth);
+
+// Login
+userRouter.post('/login', loginValidation, loginUser);
+
+// Get Admin detail using token
+userRouter.get('/', auth, getAdminInfo);
 
 // logout
-userRouter.get('/logout', (req, res, next) => {
-  try {
-    res.json({
-      status: SUCCESS,
-      message: 'Logout Success',
-    });
-  } catch (e) {
-    next(e);
-  }
-});
+userRouter.post('/logout', logOutUser);
 
 // Reset Password
 userRouter.post('/reset-password', (req, res) => {
