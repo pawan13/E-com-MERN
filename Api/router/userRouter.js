@@ -1,7 +1,7 @@
 const express = require('express');
 const { message: { SUCCESS } } = require('../utils/const');
 const {
-  registerUser, verifyUser, loginUser, getAdminInfo, logOutUser,
+  registerUser, verifyUser, loginUser, getAdminInfo, logOutUser, generateOTP, resetPassword,
 } = require('../controller/userController');
 const { adminRegistrationValidation, accountVerificationValidation, loginValidation } = require('../middleware/joiValidation');
 const { auth, refreshAuth } = require('../middleware/authmiddleware');
@@ -31,6 +31,9 @@ userRouter.post('/reset-password', (req, res) => {
     message: 'Reset Password Success',
   });
 });
+
+userRouter.post('/request-otp', generateOTP);
+userRouter.post('/reset-password', resetPassword);
 
 module.exports = {
   userRouter,

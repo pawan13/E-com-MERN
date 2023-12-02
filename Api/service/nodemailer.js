@@ -53,7 +53,49 @@ const sendAccountActivatedNotificationEmail = async ({ link, email, fName }) => 
     });
 };
 
+const sendOTPEmail = async ({ otp, email, fName }) => {
+    await transporter.sendMail({
+        from: '"DentedCode" <info@dentedcode.com>', // sender address
+        to: email, // list of receivers
+        subject: 'Forget Password OTP', // Subject line
+        text: `Hello ${fName}, Your OTP is  ${otp}`, // plain text body
+        html: `
+            <p>
+            Hello ${fName},
+      
+            Your OTP is : ${otp}
+      
+            Thank you,
+            DentedCode
+            </p>
+            
+            `, // html body
+    });
+};
+
+const passwordChangeSuccessNotification = async ({ email }) => {
+    await transporter.sendMail({
+        from: '"DentedCode" <info@dentedcode.com>', // sender address
+        to: email, // list of receivers
+        subject: 'Password reset success', // Subject line
+        text: 'Hello, Your password is changed successfully', // plain text body
+        html: `
+            <p>
+            Hello,
+      
+            You password is updated successfully. If you didn't do it, contact our admin.
+      
+            Thank you,
+            DentedCode
+            </p>
+            
+            `, // html body
+    });
+};
+
 module.exports = {
     sendAccountActivationEmail,
     sendAccountActivatedNotificationEmail,
+    sendOTPEmail,
+    passwordChangeSuccessNotification,
 };

@@ -1,12 +1,17 @@
+/* eslint-disable consistent-return */
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable indent */
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { v4: uuidv4 } = require('uuid');
 const { message: { SUCCESS }, message, FE_URL } = require('../utils/const');
 const { hashPassword, comparePassword } = require('../service/bcrypt');
 const { createAdmin, updateAdmin, getUser } = require('../model/user/UserModel');
-const { sendAccountActivationEmail, sendAccountActivatedNotificationEmail } = require('../service/nodemailer');
+const {
+    sendAccountActivationEmail, sendAccountActivatedNotificationEmail, sendOTPEmail, passwordChangeSuccessNotification,
+} = require('../service/nodemailer');
 const { createAccessJWT, createRefreshJWT } = require('../service/jwt');
-const { deleteSession } = require('../model/session/SessionModel');
+const { createSession, deleteSession, deleteSessionByFilter } = require('../model/session/SessionModel');
+const { generateOTPCode } = require('../utils');
 
 const registerUser = async (req, res, next) => {
     try {
@@ -128,10 +133,79 @@ const logOutUser = async (req, res, next) => {
         next(e);
     }
 };
+
+const generateOTP = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        if (email) {
+            const user = await getUser({ email });
+            if (user) {
+                const otp = generateOTPCode();
+                const result = await createSession({
+                    associate: email,
+                    accessToken: otp,
+                });
+
+                if (result) {
+                    await sendOTPEmail({
+                        otp, email, fName: user.fName,
+                    });
+                }
+                return res.json({
+                    status: SUCCESS,
+                    message: 'OTP Sent',
+                });
+            }
+        }
+        return res.status(500).json({
+            status: message.ERROR,
+            message: 'Something went wrong',
+        });
+    } catch (e) {
+        next(e);
+    }
+};
+
+const resetPassword = async (req, res, next) => {
+    try {
+        const { email, otp, password } = req.body;
+        if (email && password && otp) {
+            const result = await deleteSessionByFilter({
+                associate: email,
+                accessToken: otp,
+            });
+            if (result?._id) {
+                const hashPass = hashPassword(password);
+                const updatedUser = await updateAdmin({
+                    email,
+                }, {
+                    password: hashPass,
+                });
+                if (updatedUser) {
+                    // Send an email saysing, password change succ
+                    await passwordChangeSuccessNotification({ email });
+                    return res.json({
+                        status: SUCCESS,
+                        message: 'Password reset Success',
+                    });
+                }
+            }
+        }
+        res.status(500).json({
+            status: message.ERROR,
+            message: 'Something went wrong',
+        });
+    } catch (e) {
+        next(e);
+    }
+};
+
 module.exports = {
     registerUser,
     verifyUser,
     loginUser,
     getAdminInfo,
     logOutUser,
+    generateOTP,
+    resetPassword,
 };

@@ -21,8 +21,10 @@ const deleteSession = async (accesstoken) => {
     const dt = await Session.findOneAndDelete({ accesstoken });
     return dt;
 };
+const deleteSessionByFilter = async (filter) => Session.findOneAndDelete(filter);
 
-module.export = {
+module.exports = {
     createSession,
     deleteSession,
+    deleteSessionByFilter,
 };

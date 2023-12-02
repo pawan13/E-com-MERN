@@ -74,5 +74,5 @@ const loginValidation = (req, res, next) => {
 module.exports = {
     adminRegistrationValidation,
     accountRegistrationValidation,
-    loginValidation
+    loginValidation,
 };

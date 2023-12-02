@@ -1,3 +1,6 @@
+/* eslint-disable eqeqeq */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable consistent-return */
 /* eslint-disable indent */
 const { verifyAccessJWT, verifyRefreshJWT, createAccessJWT } = require('../service/jwt');
 const { getUser } = require('../model/user/UserModel');
