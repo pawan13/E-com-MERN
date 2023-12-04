@@ -6,6 +6,9 @@ require('dotenv').config();
 const { message: { ERROR } } = require('./utils/const');
 
 const dbConnect = require('./config/mongoDB');
+const { categoryRouter } = require('./router/category');
+const { auth } = require('./middleware/authmiddleware');
+const { productRouter } = require('./router/product');
 
 const app = express();
 
@@ -25,6 +28,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/v1/admin', userRouter);
+app.use('/api/v1/category', auth, categoryRouter);
+app.use('/api/v1/product', auth, productRouter);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {

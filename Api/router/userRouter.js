@@ -3,14 +3,14 @@ const { message: { SUCCESS } } = require('../utils/const');
 const {
   registerUser, verifyUser, loginUser, getAdminInfo, logOutUser, generateOTP, resetPassword,
 } = require('../controller/userController');
-const { adminRegistrationValidation, accountVerificationValidation, loginValidation } = require('../middleware/joiValidation');
+const { adminRegistrationValidation, accountRegistrationValidation, loginValidation } = require('../middleware/joiValidation/userValidation');
 const { auth, refreshAuth } = require('../middleware/authmiddleware');
 
 const userRouter = express.Router();
 
 // admin registration
 userRouter.post('/registration', adminRegistrationValidation, registerUser);
-userRouter.post('/account-verification', accountVerificationValidation, verifyUser);
+userRouter.post('/account-verification', accountRegistrationValidation, verifyUser);
 
 // get access token using refresh token
 userRouter.get('/get-accessjwt', refreshAuth);
