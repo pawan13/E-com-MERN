@@ -9,6 +9,7 @@ const adminRegistrationValidation = (req, res, next) => {
             lName: Joi.string().min(3).max(20).required(),
             phone: Joi.number().required(),
             email: Joi.string().email().required(),
+            role: Joi.string().required(),
             password: Joi.string().required()
                 .min(6)
                 .regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]+$/)

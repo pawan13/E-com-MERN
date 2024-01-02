@@ -7,10 +7,19 @@ const productSchema = new mongoose.Schema({
         required: true,
         default: 'Available',
     },
-    slug: {
+    sku: {
         type: String,
         required: true,
         unique: true,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'category',
+        required: true,
     },
     title: {
         type: String,
@@ -19,6 +28,24 @@ const productSchema = new mongoose.Schema({
     price: {
         type: String,
         required: true,
+    },
+    salesPrice: {
+        type: String,
+    },
+    salesStart: {
+        type: String,
+    },
+
+    salesEnd: {
+        type: String,
+    },
+    images: {
+        type: Array,
+        required: false,
+    },
+    thumbnail: {
+        type: String,
+        required: false,
     },
     description: {
         type: String,
@@ -31,7 +58,7 @@ const product = mongoose.model('product', productSchema);
 const createProduct = (prodObj) => product.create(prodObj);
 const getProductById = (id) => product.findById(id);
 const getProductsByFilter = (filter) => product.find(filter);
-const updateProductById = (id) => product.findByIdAndUpdate(id);
+const updateProductById = (id, obj) => product.findByIdAndUpdate(id, obj);
 const deleteProductById = (id) => product.findByIdAndDelete(id);
 
 module.exports = {

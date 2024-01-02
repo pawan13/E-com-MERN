@@ -14,6 +14,10 @@ const createProductController = async (req, res, next) => {
             trim: true,
             lower: true,
         });
+        console.log(obj);
+        // obj.images = req.files.map((file) => file.path);
+        console.log(obj.images);
+        // obj.thumbnail = req.files[0].path;
         await createProduct(obj);
         res.json({
             status: SUCCESS,

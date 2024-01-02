@@ -28,6 +28,8 @@ const createCategoryController = async (req, res, next) => {
 const getAllCategoryController = async (req, res, next) => {
     try {
         const result = await getCategoriesByFilter({});
+
+        console.log(result);
         if (!result) {
             const error = new Error('Not found');
             error.statusCode = 404;

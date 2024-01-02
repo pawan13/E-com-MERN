@@ -1,0 +1,152 @@
+import "./App.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Route, Routes } from "react-router-dom";
+import Register from "./pages/registration-login/Register";
+import Login from "./pages/registration-login/Login";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Category from "./pages/category/Category";
+import Products from "./pages/products/Products";
+import PaymentOptions from "./pages/payment-option/PaymentOptions";
+import Orders from "./pages/order/Orders";
+import Buyers from "./pages/buyer/Buyers";
+import Reviews from "./pages/review/Reviews";
+import Admin from "./pages/admin/Admin";
+import Profile from "./pages/profile/Profile";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./config/firebase-config";
+import { useDispatch } from "react-redux";
+import { getUserProfile } from "./pages/registration-login/userAction";
+import { PrivateRoute } from "./components/private-route/PrivateRoute";
+import AddProduct from "./pages/products/AddProduct";
+import { useEffect } from "react";
+import { fetchAllCategoryAction } from "./pages/category/CatAction";
+import { fetchAllProductAction } from "./pages/products/productAction";
+import EditProduct from "./pages/products/EditProduct";
+
+function App() {
+  const dispatch = useDispatch();
+  onAuthStateChanged(auth, (user) => {
+    if (user?.uid) {
+      // get user data from the database and add to the redux
+      dispatch(getUserProfile(user?.uid));
+    }
+  });
+
+  //fetch anything you need in the multipl places of the app
+  useEffect(() => {
+    dispatch(fetchAllCategoryAction());
+    dispatch(fetchAllProductAction());
+
+  }, []);
+  return (
+    <div className="">
+      <Routes>
+        <Route path="/" element={<Login />} />
+
+        {/* // private routes  */}
+        <Route
+          path="/registration"
+          element={
+            <Register />
+            // <PrivateRoute>
+            //   <Register />
+            // </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/categories"
+          element={
+            <PrivateRoute>
+              <Category />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <PrivateRoute>
+              <Products />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/product/new"
+          element={
+            <PrivateRoute>
+              <AddProduct />
+            </PrivateRoute>
+          }
+        />
+         <Route
+          path="/product/edit/:id"
+          element={
+            <PrivateRoute>
+              <EditProduct />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/payment-options"
+          element={
+            <PrivateRoute>
+              <PaymentOptions />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <Orders />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/buyers"
+          element={
+            <PrivateRoute>
+              <Buyers />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/reviews"
+          element={
+            <PrivateRoute>
+              <Reviews />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute>
+              <Admin />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+
+      <ToastContainer />
+    </div>
+  );
+}
+
+export default App;

@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema(
             required: true,
             default: 'inactive',
         },
+        role: {
+            type: String,
+            require: true,
+          },
         fName: {
             type: String,
             required: true,
@@ -31,7 +35,6 @@ const userSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            unique: true,
             required: true,
         },
         isverified: {
@@ -42,6 +45,10 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: '',
         },
+        refreshJWT: {
+            type: String,
+            default: '',
+          },
     },
     { timestamps: true },
 
